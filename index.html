@@ -326,42 +326,42 @@ for(let i=0;i<4;i++) titems.forEach(x=>{th+=`<span>${x}</span><span class="tsep"
 document.getElementById('ticker').innerHTML=th;
 
 // Plays the video INLINE inside the same card — no popup, no modal
-function playInline(thumbEl, src, poster){
+function playInline(thumbEl, src){
   if(thumbEl.querySelector('video')) return; // already playing
-  thumbEl.innerHTML = `<video src="${src}" poster="${poster}" controls autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;background:#000;"></video>`;
+  thumbEl.innerHTML = `<video src="${src}" controls autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;background:#000;"></video>`;
 }
 
 // Portfolio cards
 const vids=[
-  {video:'assets/videos/long1.mp4',poster:'assets/posters/long1_poster.jpg',title:'RJ Edit — Vol. 1',type:'Long Form',ac:'#FF5A1A'},
-  {video:'assets/videos/long2.mp4',poster:'assets/posters/long2_poster.jpg',title:'RJ Edit — Vol. 2',type:'Long Form',ac:'#2B6EFF'},
-  {video:'assets/videos/long3.mp4',poster:'assets/posters/long3_poster.jpg',title:'RJ Edit — Vol. 3',type:'Long Form',ac:'#FF7A40'},
-  {video:'assets/videos/long4.mp4',poster:'assets/posters/long4_poster.jpg',title:'RJ Edit — Vol. 4',type:'Long Form',ac:'#5C8FFF'},
+  {video:'assets/videos/long1.mp4',title:'RJ Edit — Vol. 1',type:'Long Form',ac:'#FF5A1A'},
+  {video:'assets/videos/long2.mp4',title:'RJ Edit — Vol. 2',type:'Long Form',ac:'#2B6EFF'},
+  {video:'assets/videos/long3.mp4',title:'RJ Edit — Vol. 3',type:'Long Form',ac:'#FF7A40'},
+  {video:'assets/videos/long4.mp4',title:'RJ Edit — Vol. 4',type:'Long Form',ac:'#5C8FFF'},
 ];
 const pg=document.getElementById('pgrid');
 vids.forEach(v=>{
   const el=document.createElement('div');
   el.className='pc rv';
-  el.innerHTML=`<div class="pthumb" style="background-image:url('${v.poster}')"><div class="thumb-overlay"></div><div class="pplay" style="background:${v.ac}"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg></div></div><div class="pinfo"><span class="ptitle">${v.title}</span><span class="ptype">${v.type}</span></div>`;
+  el.innerHTML=`<div class="pthumb" style="background:#15192b"><div class="thumb-overlay"></div><div class="pplay" style="background:${v.ac}"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg></div></div><div class="pinfo"><span class="ptitle">${v.title}</span><span class="ptype">${v.type}</span></div>`;
   const thumb=el.querySelector('.pthumb');
-  thumb.addEventListener('click',()=>playInline(thumb,v.video,v.poster));
+  thumb.addEventListener('click',()=>playInline(thumb,v.video));
   pg.appendChild(el);
 });
 
 // Shorts row
 const shorts=[
-  {video:'assets/videos/short1.mp4',poster:'assets/posters/short1_poster.jpg',title:'Reel #1',type:'Short',ac:'#FF5A1A'},
-  {video:'assets/videos/short2.mp4',poster:'assets/posters/short2_poster.jpg',title:'Reel #2',type:'Short',ac:'#FF7A40'},
-  {video:'assets/videos/short3.mp4',poster:'assets/posters/short3_poster.jpg',title:'Reel #3',type:'Short',ac:'#2B6EFF'},
-  {video:'assets/videos/short4.mp4',poster:'assets/posters/short4_poster.jpg',title:'Motion Edit',type:'Motion',ac:'#FF5A1A'},
+  {video:'assets/videos/short1.mp4',title:'Reel #1',type:'Short',ac:'#FF5A1A'},
+  {video:'assets/videos/short2.mp4',title:'Reel #2',type:'Short',ac:'#FF7A40'},
+  {video:'assets/videos/short3.mp4',title:'Reel #3',type:'Short',ac:'#2B6EFF'},
+  {video:'assets/videos/short4.mp4',title:'Motion Edit',type:'Motion',ac:'#FF5A1A'},
 ];
 const sg=document.getElementById('sgrid');
 shorts.forEach(v=>{
   const el=document.createElement('div');
   el.className='sc rv';
-  el.innerHTML=`<div class="sthumb" style="background-image:url('${v.poster}')"><div class="thumb-overlay"></div><div class="pplay" style="background:${v.ac}"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg></div></div><div class="pinfo"><span class="ptitle">${v.title}</span><span class="ptype">${v.type}</span></div>`;
+  el.innerHTML=`<div class="sthumb" style="background:#15192b"><div class="thumb-overlay"></div><div class="pplay" style="background:${v.ac}"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg></div></div><div class="pinfo"><span class="ptitle">${v.title}</span><span class="ptype">${v.type}</span></div>`;
   const thumb=el.querySelector('.sthumb');
-  thumb.addEventListener('click',()=>playInline(thumb,v.video,v.poster));
+  thumb.addEventListener('click',()=>playInline(thumb,v.video));
   sg.appendChild(el);
 });
 
