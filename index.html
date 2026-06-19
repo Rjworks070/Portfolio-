@@ -127,6 +127,13 @@ section{padding:6.5rem 5vw}
 @media(max-width:900px){.pgrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:500px){.pgrid{grid-template-columns:1fr}}
 
+/* VIDEO PLAYER — tap anywhere to pause/resume */
+.vid-wrap{position:relative;width:100%;height:100%;cursor:pointer}
+.vid-wrap video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.vid-tap-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;pointer-events:none;transition:transform .15s ease,opacity .25s ease;opacity:0}
+.vid-tap-icon.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+.vid-tap-icon svg{width:22px;height:22px;fill:#fff}
+
 /* WHY */
 .wgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-top:3rem}
 .wc{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;padding:2.2rem;transition:border-color .2s}
@@ -164,6 +171,7 @@ footer p{color:var(--mu);font-size:.77rem}
 .sc:hover{transform:translateY(-4px);border-color:var(--bl2)}
 .sthumb{width:100%;aspect-ratio:9/16;max-height:220px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background-size:cover;background-position:center}
 @media(max-width:700px){#sgrid{grid-template-columns:repeat(2,1fr)}}
+
 /* REVEAL */
 .rv{opacity:0;transform:translateY(20px);transition:opacity .65s ease,transform .65s ease}
 .rv.on{opacity:1;transform:translateY(0)}
@@ -241,9 +249,7 @@ footer p{color:var(--mu);font-size:.77rem}
     <div class="scard rv"><div class="sic">🎬</div><div class="sname">Long-Form YouTube Editing</div><p class="sdesc">Deep retention editing for 10–60 min videos. Hook structuring, B-roll integration, motion graphics, and pacing that keeps viewers till the very end.</p><span class="stag">YouTube Growth</span></div>
     <div class="scard rv"><div class="sic">⚡</div><div class="sname">Reels &amp; Shorts</div><p class="sdesc">Vertical short-form edits that stop the scroll. Fast-paced cuts, dynamic captions, trending audio sync — built to beat the algorithm every time.</p><span class="stag">Viral Vertical</span></div>
     <div class="scard rv"><div class="sic">✨</div><div class="sname">Motion Graphics</div><p class="sdesc">Custom lower thirds, animated intros, kinetic text, and branded overlays that elevate your video from "content" to premium production.</p><span class="stag">Premium Visual</span></div>
-    
     <div class="scard rv"><div class="sic">💬</div><div class="sname">Animated Captions</div><p class="sdesc">Styled, synced captions that boost accessibility and increase engagement on muted feeds. Fully branded to your style and colour palette.</p><span class="stag">Engagement+</span></div>
-    
   </div>
 </section>
 
@@ -253,10 +259,10 @@ footer p{color:var(--mu);font-size:.77rem}
   <p class="sd">Click any card to watch. Real edits — judge for yourself.</p>
   <div class="pgrid" id="pgrid"></div>
   <div class="shorts-section">
-  <div class="shorts-label">Shorts &amp; Motion</div>
-  <div id="sgrid"></div>
-</div>
-<div class="pgcta">
+    <div class="shorts-label">Shorts &amp; Motion</div>
+    <div id="sgrid"></div>
+  </div>
+  <div class="pgcta">
     <p>Want results like these for your channel?</p>
     <a href="#contact" class="btor">Let's Talk →</a>
   </div>
@@ -325,50 +331,152 @@ let th='';
 for(let i=0;i<4;i++) titems.forEach(x=>{th+=`<span>${x}</span><span class="tsep"> ◆ </span>`;});
 document.getElementById('ticker').innerHTML=th;
 
-// Plays the video INLINE inside the same card — no popup, no modal
-function playInline(thumbEl, src){
-  if(thumbEl.querySelector('video')) return; // already playing
-  thumbEl.innerHTML = `<video src="${src}" controls autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;background:#000;"></video>`;
+// ─── FIRST-FRAME POSTER via canvas ───────────────────────────────────────────
+// Hidden video se pehla frame capture karke canvas-dataURL poster bana deta hai
+function capturePoster(src, callback) {
+  const v = document.createElement('video');
+  v.src = src;
+  v.preload = 'metadata';
+  v.muted = true;
+  v.playsInline = true;
+  v.crossOrigin = 'anonymous';
+  // metadata load hone ke baad 0.1s pe seek karo
+  v.addEventListener('loadedmetadata', () => { v.currentTime = 0.1; });
+  v.addEventListener('seeked', () => {
+    const c = document.createElement('canvas');
+    c.width = v.videoWidth || 640;
+    c.height = v.videoHeight || 360;
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    try {
+      callback(c.toDataURL('image/jpeg', 0.85));
+    } catch(e) {
+      // CORS error pe silently fail — dark bg hi rahega
+      callback(null);
+    }
+    v.src = ''; // free karo
+  });
+  v.load();
 }
 
-// Portfolio cards
-const vids=[
+// ─── TAP-ANYWHERE PLAYER ─────────────────────────────────────────────────────
+// thumbEl ke andar video inject karo — poore area pe tap se pause/resume
+function playInline(thumbEl, src) {
+  if (thumbEl.querySelector('video')) return; // already playing
+
+  // Play button aur overlay hata do
+  thumbEl.innerHTML = '';
+
+  // Wrapper div banao
+  const wrap = document.createElement('div');
+  wrap.className = 'vid-wrap';
+
+  const vid = document.createElement('video');
+  vid.src = src;
+  vid.preload = 'auto';
+  vid.autoplay = true;
+  vid.playsinline = true;
+  // controls OFF — tap se control karenge
+  vid.controls = false;
+
+  // Pause/Play icon overlay
+  const icon = document.createElement('div');
+  icon.className = 'vid-tap-icon';
+  // Play SVG (default — dikhega jab paused ho)
+  const playSVG = `<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg>`;
+  const pauseSVG = `<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" fill="#fff"/><rect x="14" y="4" width="4" height="16" fill="#fff"/></svg>`;
+
+  let iconTimer;
+  function flashIcon(svg) {
+    icon.innerHTML = svg;
+    icon.classList.add('show');
+    clearTimeout(iconTimer);
+    iconTimer = setTimeout(() => icon.classList.remove('show'), 600);
+  }
+
+  // Tap karo — pause ya resume
+  wrap.addEventListener('click', () => {
+    if (vid.paused) {
+      vid.play();
+      flashIcon(playSVG);
+    } else {
+      vid.pause();
+      flashIcon(pauseSVG);
+    }
+  });
+
+  wrap.appendChild(vid);
+  wrap.appendChild(icon);
+  thumbEl.appendChild(wrap);
+  thumbEl.style.background = '#000';
+}
+
+// ─── CARD BUILDER ─────────────────────────────────────────────────────────────
+function buildCard(container, v, cardClass, thumbClass) {
+  const el = document.createElement('div');
+  el.className = cardClass + ' rv';
+
+  const thumb = document.createElement('div');
+  thumb.className = thumbClass;
+  thumb.style.background = '#15192b'; // default dark bg
+
+  const overlay = document.createElement('div');
+  overlay.className = 'thumb-overlay';
+
+  const btn = document.createElement('div');
+  btn.className = 'pplay';
+  btn.style.background = v.ac;
+  btn.innerHTML = `<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg>`;
+
+  thumb.appendChild(overlay);
+  thumb.appendChild(btn);
+
+  const info = document.createElement('div');
+  info.className = 'pinfo';
+  info.innerHTML = `<span class="ptitle">${v.title}</span><span class="ptype">${v.type}</span>`;
+
+  el.appendChild(thumb);
+  el.appendChild(info);
+  container.appendChild(el);
+
+  // Pehla frame poster ke taur pe set karo
+  capturePoster(v.video, (poster) => {
+    if (poster) {
+      thumb.style.backgroundImage = `url(${poster})`;
+      thumb.style.backgroundSize = 'cover';
+      thumb.style.backgroundPosition = 'center';
+    }
+  });
+
+  // Click pe inline video play karo
+  thumb.addEventListener('click', () => playInline(thumb, v.video));
+}
+
+// ─── PORTFOLIO CARDS ──────────────────────────────────────────────────────────
+const vids = [
   {video:'assets/videos/long1.mp4',title:'RJ Edit — Vol. 1',type:'Long Form',ac:'#FF5A1A'},
   {video:'assets/videos/long2.mp4',title:'RJ Edit — Vol. 2',type:'Long Form',ac:'#2B6EFF'},
   {video:'assets/videos/long3.mp4',title:'RJ Edit — Vol. 3',type:'Long Form',ac:'#FF7A40'},
   {video:'assets/videos/long4.mp4',title:'RJ Edit — Vol. 4',type:'Long Form',ac:'#5C8FFF'},
 ];
-const pg=document.getElementById('pgrid');
-vids.forEach(v=>{
-  const el=document.createElement('div');
-  el.className='pc rv';
-  el.innerHTML=`<div class="pthumb" style="background:#15192b"><div class="thumb-overlay"></div><div class="pplay" style="background:${v.ac}"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg></div></div><div class="pinfo"><span class="ptitle">${v.title}</span><span class="ptype">${v.type}</span></div>`;
-  const thumb=el.querySelector('.pthumb');
-  thumb.addEventListener('click',()=>playInline(thumb,v.video));
-  pg.appendChild(el);
-});
+const pg = document.getElementById('pgrid');
+vids.forEach(v => buildCard(pg, v, 'pc', 'pthumb'));
 
-// Shorts row
-const shorts=[
+// ─── SHORTS ROW ───────────────────────────────────────────────────────────────
+const shorts = [
   {video:'assets/videos/short1.mp4',title:'Reel #1',type:'Short',ac:'#FF5A1A'},
   {video:'assets/videos/short2.mp4',title:'Reel #2',type:'Short',ac:'#FF7A40'},
   {video:'assets/videos/short3.mp4',title:'Reel #3',type:'Short',ac:'#2B6EFF'},
   {video:'assets/videos/short4.mp4',title:'Motion Edit',type:'Motion',ac:'#FF5A1A'},
 ];
-const sg=document.getElementById('sgrid');
-shorts.forEach(v=>{
-  const el=document.createElement('div');
-  el.className='sc rv';
-  el.innerHTML=`<div class="sthumb" style="background:#15192b"><div class="thumb-overlay"></div><div class="pplay" style="background:${v.ac}"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#fff"/></svg></div></div><div class="pinfo"><span class="ptitle">${v.title}</span><span class="ptype">${v.type}</span></div>`;
-  const thumb=el.querySelector('.sthumb');
-  thumb.addEventListener('click',()=>playInline(thumb,v.video));
-  sg.appendChild(el);
-});
+const sg = document.getElementById('sgrid');
+shorts.forEach(v => buildCard(sg, v, 'sc', 'sthumb'));
 
-// Scroll reveal
-const rvs=document.querySelectorAll('.rv');
-const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');obs.unobserve(e.target);}});},{threshold:.1});
-rvs.forEach(el=>obs.observe(el));
+// ─── SCROLL REVEAL ────────────────────────────────────────────────────────────
+const rvs = document.querySelectorAll('.rv');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('on'); obs.unobserve(e.target); }});
+}, {threshold:.1});
+rvs.forEach(el => obs.observe(el));
 </script>
 </body>
 </html>
