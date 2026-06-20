@@ -133,10 +133,12 @@ section{padding:6.5rem 5vw}
 /* TESTIMONIALS — photo grid, 3:4 ratio. Drop your own client photos into each .tmc <img src> */
 #testimonials{background:var(--bg)}
 .tmgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:2.8rem}
-.tmc{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--brd);aspect-ratio:3/4;background:var(--bg3)}
-.tmc img{width:100%;height:100%;object-fit:cover;display:block}
-.tmoverlay{position:absolute;left:0;right:0;bottom:0;padding:.8rem .7rem .6rem;background:linear-gradient(180deg,transparent,rgba(0,0,0,.78))}
-.tmname{font-family:'Space Grotesk',sans-serif;font-size:.78rem;font-weight:600;color:#fff;line-height:1.2}
+.tmc{border-radius:12px;overflow:hidden;border:1px solid var(--brd);background:var(--bg3)}
+.tmimg{width:100%;aspect-ratio:3/4;overflow:hidden}
+.tmimg img{width:100%;height:100%;object-fit:cover;display:block}
+.tminfo{padding:.8rem .85rem .9rem}
+.tmquote{font-size:.7rem;font-style:italic;color:var(--mu2);line-height:1.4;margin-bottom:.35rem}
+.tmname{font-family:'Space Grotesk',sans-serif;font-size:.8rem;font-weight:600;color:var(--tx);line-height:1.2}
 .tmrole{font-size:.66rem;color:var(--mu2);margin-top:.1rem}
 @media(max-width:700px){.tmgrid{grid-template-columns:repeat(2,1fr)}}
 
@@ -259,20 +261,20 @@ footer p{color:var(--mu);font-size:.77rem}
   <h2 class="sh">Creators I've Worked With.</h2>
   <div class="tmgrid">
     <div class="tmc rv">
-      <img src="assets/images/client1.jpg" alt="Awa K. Penn">
-      <div class="tmoverlay"><div class="tmname">Awa K. Penn</div></div>
+      <div class="tmimg"><img src="assets/images/client1.jpg" alt="Awa K. Penn"></div>
+      <div class="tminfo"><div class="tmquote">"Edits hooked our viewers instantly."</div><div class="tmname">Awa K. Penn</div></div>
     </div>
     <div class="tmc rv">
-      <img src="assets/images/client2.jpg" alt="John Wick">
-      <div class="tmoverlay"><div class="tmname">John Wick</div></div>
+      <div class="tmimg"><img src="assets/images/client2.jpg" alt="John Wick"></div>
+      <div class="tminfo"><div class="tmquote">"Retention jumped within weeks."</div><div class="tmname">John Wick</div></div>
     </div>
     <div class="tmc rv">
-      <img src="assets/images/client3.jpg" alt="Relivin">
-      <div class="tmoverlay"><div class="tmname">Relivin</div></div>
+      <div class="tmimg"><img src="assets/images/client3.jpg" alt="Relivin"></div>
+      <div class="tminfo"><div class="tmquote">"Fast, clean, and on-brand every time."</div><div class="tmname">Relivin</div></div>
     </div>
     <div class="tmc rv">
-      <img src="assets/images/client4.jpg" alt="Techdropdown">
-      <div class="tmoverlay"><div class="tmname">Techdropdown</div></div>
+      <div class="tmimg"><img src="assets/images/client4.jpg" alt="Techdropdown"></div>
+      <div class="tminfo"><div class="tmquote">"Best editing partner we've worked with."</div><div class="tmname">Techdropdown</div></div>
     </div>
   </div>
 </section>
